@@ -90,6 +90,20 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // GET → info API aktif
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      status: 'ok',
+      message: 'NyzzUploader API aktif! Silahkan lanjutkan upload.',
+      endpoint: 'POST /api/upload',
+      field: 'file (multipart/form-data)',
+      maxSize: '3 MB',
+      formats: 'Semua format didukung',
+      expired: 'Tidak ada (permanen)',
+    });
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!GITHUB_TOKEN) return res.status(500).json({ error: 'GITHUB_TOKEN belum dikonfigurasi' });
 
