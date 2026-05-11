@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/dokumentasi",
+      "destination": "/dokumentasi.html"
+    },
+    {
+      "source": "/:slug([a-z0-9]{6})",
+      "destination": "/api/[slug]"
+    }
+  ]
+}
