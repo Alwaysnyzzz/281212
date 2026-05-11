@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NyzzUploader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050a12;
+      --bg2: #08101d;
+      --blue: #1d8cf8;
+      --blue-dim: #0f4a8a;
+      --blue-glow: rgba(29,140,248,0.18);
+      --cyan: #00d4ff;
+      --white: #e8f4ff;
+      --muted: #3a5068;
+      --card-bg: rgba(10,22,40,0.92);
+      --border: rgba(29,140,248,0.35);
+      --dash-color: rgba(29,140,248,0.55);
+      --success: #00e5a0;
+      --error: #ff4d6a;
+      --font-mono: 'Space Mono', monospace;
+      --font-body: 'Outfit', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: var(--font-body);
+      color: var(--white);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 24px 16px;
+    }
+
+    /* ── Background grid & glow ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(29,140,248,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29,140,248,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(29,140,248,0.10) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      animation: fadeDown 0.6s ease both;
+    }
+    .header .logo {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 4px;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      opacity: 0.8;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--white) 0%, var(--cyan) 60%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    .header p span {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* ── Notification ── */
+    #notif {
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      text-align: center;
+      display: none;
+      animation: fadeDown 0.3s ease both;
+      letter-spacing: 0.5px;
+    }
+    #notif.uploading {
+      display: block;
+      background: rgba(29,140,248,0.1);
+      border: 1px solid rgba(29,140,248,0.4);
+      color: var(--blue);
+    }
+    #notif.success {
+      display: block;
+      background: rgba(0,229,160,0.08);
+      border: 1px solid rgba(0,229,160,0.35);
+      color: var(--success);
+    }
+    #notif.error {
+      display: block;
+      background: rgba(255,77,106,0.08);
+      border: 1px solid rgba(255,77,106,0.35);
+      color: var(--error);
+    }
+
+    .notif-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-right: 8px;
+      vertical-align: middle;
+      animation: pulse 1.2s ease infinite;
+    }
+    .uploading .notif-dot { animation: pulse 0.8s ease infinite; }
+    .success .notif-dot, .error .notif-dot { animation: none; }
+
+    /* ── Drop zone card ── */
+    .drop-zone {
+      border: 2px dashed var(--dash-color);
+      border-radius: 16px;
+      background: var(--card-bg);
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeUp 0.6s 0.15s ease both;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--cyan);
+      background: rgba(10,22,40,0.98);
+      box-shadow: 0 0 32px rgba(0,212,255,0.12), inset 0 0 40px rgba(29,140,248,0.04);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* corner decorations */
+    .drop-zone::before, .drop-zone::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: var(--blue);
+      border-style: solid;
+      pointer-events: none;
+      transition: border-color 0.25s;
+    }
+    .drop-zone::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+    .drop-zone::after  { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+    .drop-zone:hover::before, .drop-zone:hover::after,
+    .drop-zone.dragover::before, .drop-zone.dragover::after {
+      border-color: var(--cyan);
+    }
+
+    .drop-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 32px 24px;
+      text-align: center;
+      pointer-events: none;
+    }
+    .drop-icon {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      background: rgba(29,140,248,0.12);
+      border: 1px solid rgba(29,140,248,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+    .drop-zone:hover .drop-icon { transform: scale(1.07); }
+    .drop-icon svg { width: 26px; height: 26px; stroke: var(--blue); }
+    .drop-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .drop-sub {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Preview card ── */
+    #preview-card {
+      display: none;
+      border-radius: 12px;
+      background: rgba(8,20,38,0.95);
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      animation: fadeUp 0.3s ease both;
+    }
+    #preview-card.show { display: flex; align-items: center; gap: 14px; }
+
+    .preview-icon {
+      width: 46px; height: 46px; flex-shrink: 0;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .preview-icon.image { background: rgba(0,212,255,0.1); }
+    .preview-icon.video { background: rgba(120,80,255,0.12); }
+    .preview-icon.audio { background: rgba(0,229,160,0.10); }
+    .preview-icon.file  { background: rgba(29,140,248,0.10); }
+
+    #preview-thumb {
+      width: 46px; height: 46px; border-radius: 10px;
+      object-fit: cover;
+      display: none;
+    }
+
+    .preview-info { flex: 1; min-width: 0; }
+    .preview-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--white);
+    }
+    .preview-meta {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    .preview-remove {
+      background: none; border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .preview-remove:hover { color: var(--error); }
+    .preview-remove svg { width: 16px; height: 16px; }
+
+    /* ── Upload button ── */
+    #btn-upload {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0f4a8a 0%, #1d8cf8 100%);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-body);
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(29,140,248,0.3);
+      animation: fadeUp 0.6s 0.25s ease both;
+    }
+    #btn-upload::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    #btn-upload:hover:not(:disabled) {
+      box-shadow: 0 6px 30px rgba(29,140,248,0.5);
+      transform: translateY(-1px);
+    }
+    #btn-upload:active:not(:disabled) { transform: translateY(0px); }
+    #btn-upload:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ── Progress bar ── */
+    #progress-wrap {
+      display: none;
+      height: 4px;
+      background: rgba(29,140,248,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+      animation: fadeUp 0.3s ease both;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Result URL ── */
+    #result-box {
+      display: none;
+      border-radius: 12px;
+      background: rgba(8,20,38,0.95);
+      border: 1px solid rgba(0,229,160,0.3);
+      overflow: hidden;
+      animation: fadeUp 0.4s ease both;
+    }
+    #result-box.show { display: block; }
+
+    .result-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(0,229,160,0.15);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--success);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .result-header::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .result-url-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+    }
+    #result-url {
+      flex: 1;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--white);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+    #btn-copy {
+      flex-shrink: 0;
+      background: rgba(29,140,248,0.12);
+      border: 1px solid rgba(29,140,248,0.3);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    #btn-copy:hover { background: rgba(29,140,248,0.25); color: var(--cyan); }
+    #btn-copy.copied { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.3); color: var(--success); }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      animation: fadeUp 0.6s 0.35s ease both;
+      line-height: 1.8;
+    }
+    .footer a { color: var(--blue-dim); text-decoration: none; }
+    .footer a:hover { color: var(--blue); }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(29,140,248,0.3);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">// NyzzAPI</div>
+      <h1>File Uploader</h1>
+      <p>Semua format didukung &nbsp;·&nbsp; Maks <span>3 MB</span> &nbsp;·&nbsp; No Expired</p>
+    </div>
+
+    <!-- Notification -->
+    <div id="notif"></div>
+
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="*/*" />
+      <div class="drop-inner">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="drop-label">Klik atau seret file ke sini</div>
+        <div class="drop-sub">JPG · PNG · MP4 · MP3 · PDF · ZIP · dan lainnya</div>
+      </div>
+    </div>
+
+    <!-- Preview card -->
+    <div id="preview-card">
+      <img id="preview-thumb" alt="preview" />
+      <div class="preview-icon" id="preview-icon"></div>
+      <div class="preview-info">
+        <div class="preview-name" id="preview-name">—</div>
+        <div class="preview-meta" id="preview-meta">—</div>
+      </div>
+      <button class="preview-remove" id="btn-remove" title="Hapus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+
+    <!-- Upload button -->
+    <button id="btn-upload" disabled>Upload File</button>
+
+    <!-- Result -->
+    <div id="result-box">
+      <div class="result-header">URL Berhasil Dibuat</div>
+      <div class="result-url-row">
+        <div id="result-url"></div>
+        <button id="btn-copy">Salin</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <a href="https://t.me/DzzXNzz">Telegram</a> &nbsp;·&nbsp; <a href="#">WhatsApp</a><br>
+      Made with ❤️ by @DzzXNzz<br>
+      © 2026 NyzzAPI.
+    </div>
+
+  </div>
+
+  <script>
+    const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+    const UPLOAD_ENDPOINT = '/api/upload'; // Vercel API route
+
+    const dropZone    = document.getElementById('drop-zone');
+    const fileInput   = document.getElementById('file-input');
+    const previewCard = document.getElementById('preview-card');
+    const previewIcon = document.getElementById('preview-icon');
+    const previewThumb= document.getElementById('preview-thumb');
+    const previewName = document.getElementById('preview-name');
+    const previewMeta = document.getElementById('preview-meta');
+    const btnRemove   = document.getElementById('btn-remove');
+    const btnUpload   = document.getElementById('btn-upload');
+    const btnCopy     = document.getElementById('btn-copy');
+    const notif       = document.getElementById('notif');
+    const progressWrap= document.getElementById('progress-wrap');
+    const progressBar = document.getElementById('progress-bar');
+    const resultBox   = document.getElementById('result-box');
+    const resultUrl   = document.getElementById('result-url');
+
+    let selectedFile = null;
+
+    // ── Drag & drop ──
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    function handleFile(file) {
+      if (file.size > MAX_SIZE) {
+        showNotif('error', '❌ File melebihi batas 3 MB!');
+        return;
+      }
+      selectedFile = file;
+      showPreview(file);
+      hideResult();
+    }
+
+    function fileEmoji(type, name) {
+      if (type.startsWith('image/')) return { emoji: '🖼️', cls: 'image' };
+      if (type.startsWith('video/')) return { emoji: '🎬', cls: 'video' };
+      if (type.startsWith('audio/')) return { emoji: '🎵', cls: 'audio' };
+      if (type === 'application/pdf') return { emoji: '📄', cls: 'file' };
+      if (type.includes('zip') || type.includes('rar') || type.includes('tar')) return { emoji: '🗜️', cls: 'file' };
+      return { emoji: '📁', cls: 'file' };
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    }
+
+    function showPreview(file) {
+      const { emoji, cls } = fileEmoji(file.type, file.name);
+      previewThumb.style.display = 'none';
+      previewIcon.style.display = 'flex';
+      previewIcon.className = `preview-icon ${cls}`;
+      previewIcon.textContent = emoji;
+
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewThumb.src = e.target.result;
+          previewThumb.style.display = 'block';
+          previewIcon.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      let displayName = file.name;
+      if (file.type.startsWith('video/') && !file.name.toLowerCase().endsWith('.mp4')) {
+        // still show real name
+      }
+      previewName.textContent = displayName;
+      previewMeta.textContent = `${formatSize(file.size)} · ${file.type || 'berkas'}`;
+
+      previewCard.classList.add('show');
+      btnUpload.disabled = false;
+    }
+
+    btnRemove.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      previewCard.classList.remove('show');
+      btnUpload.disabled = true;
+      hideResult();
+      clearNotif();
+    });
+
+    // ── Upload ──
+    btnUpload.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      btnUpload.disabled = true;
+      showNotif('uploading', '<span class="spinner"></span>Sedang Mengupload...');
+      progressWrap.style.display = 'block';
+      progressBar.style.width = '0%';
+      hideResult();
+
+      // fake progress start
+      let prog = 0;
+      const progInterval = setInterval(() => {
+        prog = Math.min(prog + Math.random() * 8, 85);
+        progressBar.style.width = prog + '%';
+      }, 200);
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res = await fetch(UPLOAD_ENDPOINT, {
+          method: 'POST',
+          body: formData
+        });
+
+        clearInterval(progInterval);
+        progressBar.style.width = '100%';
+
+        const json = await res.json();
+
+        if (!res.ok || json.error) throw new Error(json.error || 'Upload gagal');
+
+        showNotif('success', '✅ Upload Berhasil!');
+        setTimeout(clearNotif, 2000);
+
+        resultUrl.textContent = json.url;
+        resultBox.classList.add('show');
+        btnCopy.textContent = 'Salin';
+        btnCopy.classList.remove('copied');
+
+      } catch (err) {
+        clearInterval(progInterval);
+        progressBar.style.width = '0%';
+        showNotif('error', '❌ ' + (err.message || 'Terjadi kesalahan'));
+        setTimeout(clearNotif, 2000);
+      } finally {
+        btnUpload.disabled = false;
+        setTimeout(() => {
+          progressWrap.style.display = 'none';
+          progressBar.style.width = '0%';
+        }, 800);
+      }
+    });
+
+    // ── Copy ──
+    btnCopy.addEventListener('click', () => {
+      const url = resultUrl.textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        btnCopy.textContent = 'Tersalin!';
+        btnCopy.classList.add('copied');
+        setTimeout(() => {
+          btnCopy.textContent = 'Salin';
+          btnCopy.classList.remove('copied');
+        }, 2000);
+      });
+    });
+
+    function showNotif(type, html) {
+      notif.className = type;
+      notif.innerHTML = `<span class="notif-dot"></span>${html}`;
+      notif.style.display = 'block';
+    }
+    function clearNotif() {
+      notif.style.display = 'none';
+      notif.className = '';
+    }
+    function hideResult() {
+      resultBox.classList.remove('show');
+      resultUrl.textContent = '';
+    }
+  </script>
+</body>
+</html>
