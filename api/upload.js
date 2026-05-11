@@ -26,6 +26,10 @@ const BASE_URL      = (process.env.BASE_URL || 'https://roxy-upload.nyzz.my.id')
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function randomSlug(len = 6) {
   return Array.from({ length: len }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('');
 }
@@ -157,6 +161,9 @@ export default async function handler(req, res) {
       uploadedAt: new Date().toISOString(),
     };
     await saveMap(mapData, sha);
+
+    // Tunggu 45 detik agar file GitHub/raw siap dibuka
+    await delay(45 * 1000);
 
     return res.status(200).json({
       success: true,
