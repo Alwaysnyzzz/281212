@@ -1,46 +1,34 @@
-// api/file.js — Vercel Serverless Function
-// Proxy file dari GitHub raw agar URL-nya tetap domain Vercel kamu
-// Usage: /api/file?p=uploads/2026/05/foto_abc123.jpg
-//
-// ENV:
-//   GITHUB_OWNER   = Alwaysnyzzz
-//   GITHUB_REPO    = nyzz-uploads
-//   GITHUB_BRANCH  = main
-
-const GITHUB_OWNER  = process.env.GITHUB_OWNER  || 'Alwaysnyzzz';
-const GITHUB_REPO   = process.env.GITHUB_REPO   || 'nyzz-uploads';
-const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+// api/file.js — proxy URL eksternal secara aman lewat domain sendiri
+// Usage: /api/file?url=https%3A%2F%2Ffiles.catbox.moe%2Fxxxx.jpg
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const { p } = req.query;
-  if (!p) return res.status(400).json({ error: 'Parameter p (path) diperlukan' });
+  const { url } = req.query;
 
-  // Validasi path — hanya boleh folder uploads/
-  const cleanPath = decodeURIComponent(p).replace(/\.\./g, '');
-  if (!cleanPath.startsWith('uploads/')) {
-    return res.status(403).json({ error: 'Akses ditolak' });
+  if (!url || !/^https?:\/\//i.test(url)) {
+    return res.status(400).json({ success: false, error: 'Parameter url diperlukan' });
   }
 
-  const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanPath}`;
-
   try {
-    const upstream = await fetch(rawUrl);
+    const upstream = await fetch(url, {
+      headers: {
+        'User-Agent': 'NyzzUploader/1.0'
+      }
+    });
+
     if (!upstream.ok) {
-      return res.status(upstream.status).json({ error: 'File tidak ditemukan' });
+      return res.status(upstream.status).json({ success: false, error: 'File tidak ditemukan' });
     }
 
-    // Teruskan Content-Type
     const ct = upstream.headers.get('content-type') || 'application/octet-stream';
     res.setHeader('Content-Type', ct);
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // cache 1 tahun
-    res.setHeader('X-Powered-By', 'NyzzAPI');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('X-Powered-By', 'NyzzUploader');
 
     const buffer = await upstream.arrayBuffer();
-    res.status(200).send(Buffer.from(buffer));
-
+    return res.status(200).send(Buffer.from(buffer));
   } catch (err) {
-    res.status(502).json({ error: 'Gagal mengambil file dari GitHub' });
+    return res.status(502).json({ success: false, error: 'Gagal mengambil file' });
   }
 }

@@ -560,7 +560,7 @@
         <div class="code-header">
           <span class="code-lang">url</span>
         </div>
-        <pre>https://roxy-upload.nyzz.my.id</pre>
+        <pre>https://uploader.nyzz.my.id</pre>
       </div>
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
@@ -624,7 +624,7 @@
               <span class="code-lang">cURL</span>
               <button class="btn-copy-code" onclick="copyCode(this)">Salin</button>
             </div>
-            <pre>curl -X POST https://roxy-upload.nyzz.my.id/api/upload \
+            <pre>curl -X POST https://uploader.nyzz.my.id/api/upload \
   -F <span class="t-str">"file=@/path/ke/foto.jpg"</span></pre>
           </div>
 
@@ -639,7 +639,7 @@
               <div class="code-header"><span class="code-lang">json</span><button class="btn-copy-code" onclick="copyCode(this)">Salin</button></div>
               <pre>{
   <span class="t-prop">"success"</span>: <span class="t-kw">true</span>,
-  <span class="t-prop">"url"</span>:     <span class="t-str">"https://roxy-upload.nyzz.my.id/a1b2c3"</span>,
+  <span class="t-prop">"url"</span>:     <span class="t-str">"https://uploader.nyzz.my.id/a1b2c3"</span>,
   <span class="t-prop">"slug"</span>:    <span class="t-str">"a1b2c3"</span>,
   <span class="t-prop">"name"</span>:    <span class="t-str">"foto.jpg"</span>,
   <span class="t-prop">"size"</span>:    <span class="t-num">204800</span>
@@ -680,11 +680,11 @@
         <div class="endpoint-body">
           <div class="callout tip">
             <span class="callout-icon">✅</span>
-            <span>URL dikembalikan dari endpoint upload langsung bisa dipakai. Format: <code style="font-family:var(--mono);color:var(--green)">https://roxy-upload.nyzz.my.id/xxxxxx</code> (6 karakter acak).</span>
+            <span>URL dikembalikan dari endpoint upload langsung bisa dipakai. Format: <code style="font-family:var(--mono);color:var(--green)">https://uploader.nyzz.my.id/xxxxxx</code> (6 karakter acak).</span>
           </div>
           <div class="code-wrap">
             <div class="code-header"><span class="code-lang">url</span></div>
-            <pre>https://roxy-upload.nyzz.my.id/<span class="t-str">a1b2c3</span>
+            <pre>https://uploader.nyzz.my.id/<span class="t-str">a1b2c3</span>
 
 <span class="t-cm">// → serve file langsung dengan Content-Type yang tepat</span>
 <span class="t-cm">// → cache 1 tahun (immutable)</span></pre>
@@ -717,7 +717,7 @@
 <span class="t-kw">import</span> <span class="t-var">FormData</span> <span class="t-kw">from</span> <span class="t-str">'form-data'</span>
 <span class="t-kw">import</span> <span class="t-var">fetch</span> <span class="t-kw">from</span> <span class="t-str">'node-fetch'</span>
 
-<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://roxy-upload.nyzz.my.id/api/upload'</span>
+<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://uploader.nyzz.my.id/api/upload'</span>
 
 <span class="t-cm">// Fungsi upload buffer ke NyzzUploader</span>
 <span class="t-kw">async function</span> <span class="t-fn">uploadToNyzz</span>(buffer, filename) {
@@ -795,9 +795,9 @@ sock.<span class="t-fn">ev.on</span>(<span class="t-str">'messages.upsert'</span
 <span class="t-kw">import</span> <span class="t-var">FormData</span> <span class="t-kw">from</span> <span class="t-str">'form-data'</span>
 
 <span class="t-kw">const</span> bot = <span class="t-kw">new</span> <span class="t-fn">TelegramBot</span>(<span class="t-str">'TOKEN_BOT_KAMU'</span>, { polling: <span class="t-kw">true</span> })
-<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://roxy-upload.nyzz.my.id/api/upload'</span>
+<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://uploader.nyzz.my.id/api/upload'</span>
 
-<span class="t-cm">// Download file dari Telegram lalu upload ke NyzzUploder</span>
+<span class="t-cm">// Download file dari Telegram lalu upload ke NyzzUploader</span>
 <span class="t-kw">async function</span> <span class="t-fn">uploadFromTelegram</span>(fileId, filename) {
   <span class="t-kw">const</span> fileUrl = <span class="t-kw">await</span> bot.<span class="t-fn">getFileLink</span>(fileId)
   <span class="t-kw">const</span> dlRes   = <span class="t-kw">await</span> <span class="t-fn">fetch</span>(fileUrl)
