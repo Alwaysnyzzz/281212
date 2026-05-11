@@ -2,6 +2,7 @@
   "version": 2,
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/dokumentasi", "dest": "/dokumentasi.html" },
     { "src": "/([a-z0-9]{6})$", "dest": "/api/[slug]?slug=$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
