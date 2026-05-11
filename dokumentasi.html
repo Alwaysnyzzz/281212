@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dokumentasi — NyzzUploader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #040c18;
+      --bg2:       #071224;
+      --bg3:       #0a1a30;
+      --blue:      #1d8cf8;
+      --blue-hi:   #5badff;
+      --cyan:      #00d4ff;
+      --green:     #00e5a0;
+      --yellow:    #ffd166;
+      --red:       #ff4d6a;
+      --white:     #dff0ff;
+      --muted:     #3a5470;
+      --muted2:    #223044;
+      --border:    rgba(29,140,248,0.18);
+      --mono:      'Space Mono', monospace;
+      --body:      'DM Sans', sans-serif;
+      --glow:      rgba(29,140,248,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--body);
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Grid bg ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(29,140,248,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29,140,248,0.04) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      background: rgba(4,12,24,0.95);
+      backdrop-filter: blur(12px);
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .sidebar-brand .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sidebar-brand h2 {
+      font-size: 17px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--white), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-section {
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+    .nav-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 0 8px;
+      margin-bottom: 4px;
+      margin-top: 16px;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 400;
+      transition: background 0.15s, color 0.15s;
+      cursor: pointer;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(29,140,248,0.1);
+      color: var(--blue-hi);
+    }
+    .nav-link .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .nav-link:hover .dot, .nav-link.active .dot { background: var(--blue); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 20px 0;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      line-height: 2;
+    }
+    .sidebar-footer a { color: var(--muted); text-decoration: none; }
+    .sidebar-footer a:hover { color: var(--blue); }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      max-width: 820px;
+      padding: 48px 40px;
+      overflow-x: hidden;
+    }
+
+    section { margin-bottom: 60px; }
+
+    /* ── Hero ── */
+    .hero { margin-bottom: 52px; }
+    .hero .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .hero h1 {
+      font-size: 38px;
+      font-weight: 600;
+      line-height: 1.15;
+      background: linear-gradient(135deg, var(--white) 0%, var(--cyan) 55%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 520px;
+      font-weight: 300;
+    }
+    .hero p strong { color: var(--blue-hi); font-weight: 500; }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-family: var(--mono);
+      border: 1px solid;
+    }
+    .badge.blue   { border-color: rgba(29,140,248,0.4); color: var(--blue-hi); background: rgba(29,140,248,0.06); }
+    .badge.green  { border-color: rgba(0,229,160,0.4);  color: var(--green);   background: rgba(0,229,160,0.06); }
+    .badge.yellow { border-color: rgba(255,209,102,0.4);color: var(--yellow);  background: rgba(255,209,102,0.06); }
+
+    /* ── Section title ── */
+    .sec-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .sec-title h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .sec-title .line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+    .sec-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--blue);
+      background: rgba(29,140,248,0.08);
+      border: 1px solid rgba(29,140,248,0.2);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+
+    /* ── Endpoint card ── */
+    .endpoint-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg2);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(29,140,248,0.04);
+    }
+    .method {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 5px;
+      letter-spacing: 1px;
+    }
+    .method.post { background: rgba(0,229,160,0.12); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
+    .method.get  { background: rgba(29,140,248,0.12); color: var(--blue-hi); border: 1px solid rgba(29,140,248,0.3); }
+
+    .endpoint-path {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--white);
+    }
+    .endpoint-desc {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .endpoint-body { padding: 18px; }
+
+    /* ── Info grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .info-item {
+      background: var(--bg3);
+      border: 1px solid var(--muted2);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .info-item .key {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .info-item .val {
+      font-size: 13px;
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    th {
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--muted2);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(34,48,68,0.5);
+      vertical-align: top;
+    }
+    td:first-child { font-family: var(--mono); font-size: 12px; color: var(--blue-hi); }
+    td .req { color: var(--red); font-size: 10px; font-family: var(--mono); }
+    td .opt { color: var(--muted); font-size: 10px; font-family: var(--mono); }
+    td .desc { color: var(--muted); font-size: 12px; }
+
+    /* ── Code block ── */
+    .code-wrap {
+      border-radius: 10px;
+      background: #020a14;
+      border: 1px solid var(--muted2);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--muted2);
+      background: rgba(7,18,36,0.8);
+    }
+    .code-lang {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .btn-copy-code {
+      background: none;
+      border: 1px solid var(--muted2);
+      border-radius: 5px;
+      padding: 3px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-copy-code:hover { color: var(--blue-hi); border-color: var(--blue); }
+    .btn-copy-code.ok { color: var(--green); border-color: var(--green); }
+
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.75;
+      color: #a8c7e8;
+      white-space: pre;
+    }
+
+    /* syntax highlight sederhana via span */
+    .t-kw   { color: #c792ea; }   /* keyword */
+    .t-str  { color: #c3e88d; }   /* string */
+    .t-fn   { color: #82aaff; }   /* function */
+    .t-cm   { color: #4a6880; font-style: italic; } /* comment */
+    .t-num  { color: #f78c6c; }   /* number */
+    .t-var  { color: #eefff4; }   /* variable */
+    .t-prop { color: #89ddff; }   /* property */
+
+    /* ── Response example ── */
+    .response-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: -1px;
+    }
+    .rtab {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: var(--mono);
+      border-radius: 7px 7px 0 0;
+      border: 1px solid var(--muted2);
+      border-bottom: none;
+      cursor: pointer;
+      background: var(--bg3);
+      color: var(--muted);
+      transition: color 0.15s, background 0.15s;
+    }
+    .rtab.active { background: #020a14; color: var(--green); border-color: var(--muted2); }
+    .rtab.err.active { color: var(--red); }
+
+    .rtab-content { display: none; }
+    .rtab-content.active { display: block; }
+
+    /* ── Note / callout ── */
+    .callout {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .callout.info  { background: rgba(29,140,248,0.07); border: 1px solid rgba(29,140,248,0.2); color: var(--blue-hi); }
+    .callout.warn  { background: rgba(255,209,102,0.06); border: 1px solid rgba(255,209,102,0.2); color: var(--yellow); }
+    .callout.tip   { background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2); color: var(--green); }
+    .callout-icon  { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Bot section tabs ── */
+    .bot-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .bot-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--muted2);
+      background: var(--bg3);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bot-tab:hover { border-color: var(--blue); color: var(--blue-hi); }
+    .bot-tab.active { border-color: var(--blue); background: rgba(29,140,248,0.1); color: var(--blue-hi); }
+    .bot-tab img { width: 18px; height: 18px; border-radius: 4px; }
+
+    .bot-content { display: none; }
+    .bot-content.active { display: block; }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .step-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(29,140,248,0.12);
+      border: 1px solid rgba(29,140,248,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--blue);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--white); }
+    .step-desc  { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .main > * { animation: fadeIn 0.5s ease both; }
+    .main > *:nth-child(2) { animation-delay: 0.08s; }
+    .main > *:nth-child(3) { animation-delay: 0.14s; }
+    .main > *:nth-child(4) { animation-delay: 0.20s; }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 32px 20px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="tag">// NyzzAPI</div>
+      <h2>Uploader Docs</h2>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Memulai</div>
+      <a class="nav-link active" href="#overview"><span class="dot"></span>Overview</a>
+      <a class="nav-link" href="#baseurl"><span class="dot"></span>Base URL</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Endpoint</div>
+      <a class="nav-link" href="#upload"><span class="dot"></span>POST /api/upload</a>
+      <a class="nav-link" href="#akses"><span class="dot"></span>GET /:slug</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Integrasi Bot</div>
+      <a class="nav-link" href="#bot-wa"><span class="dot"></span>Bot WhatsApp</a>
+      <a class="nav-link" href="#bot-tele"><span class="dot"></span>Bot Telegram</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Referensi</div>
+      <a class="nav-link" href="#errors"><span class="dot"></span>Error Codes</a>
+      <a class="nav-link" href="#limits"><span class="dot"></span>Batasan</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="/">← Kembali ke Uploader</a><br>
+      Made with ❤️ by @DzzXNzz<br>
+      © 2026 NyzzAPI.
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero" id="overview">
+      <div class="eyebrow">// Dokumentasi Publik</div>
+      <h1>NyzzUploader API</h1>
+      <p>API upload file publik yang simpel. Upload file apapun, dapatkan <strong>URL pendek permanen</strong> — cocok untuk bot WhatsApp, Telegram, atau integrasi apapun.</p>
+      <div class="badges">
+        <span class="badge blue">⚡ REST API</span>
+        <span class="badge green">∞ No Expired</span>
+        <span class="badge yellow">⚠ Maks 3 MB</span>
+        <span class="badge blue">📦 All Format</span>
+      </div>
+    </div>
+
+    <!-- Base URL -->
+    <section id="baseurl">
+      <div class="sec-title">
+        <span class="sec-num">01</span>
+        <h2>Base URL</h2>
+        <div class="line"></div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">url</span>
+        </div>
+        <pre>https://uploader.nyzz.my.id</pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>Semua request tidak memerlukan API key. API ini bersifat publik dan gratis.</span>
+      </div>
+    </section>
+
+    <!-- Upload endpoint -->
+    <section id="upload">
+      <div class="sec-title">
+        <span class="sec-num">02</span>
+        <h2>Upload File</h2>
+        <div class="line"></div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/upload</span>
+          <span class="endpoint-desc">Upload file baru</span>
+        </div>
+        <div class="endpoint-body">
+
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="key">Content-Type</div>
+              <div class="val">multipart/form-data</div>
+            </div>
+            <div class="info-item">
+              <div class="key">Maks Ukuran</div>
+              <div class="val">3 MB</div>
+            </div>
+            <div class="info-item">
+              <div class="key">Format</div>
+              <div class="val">Semua tipe file</div>
+            </div>
+            <div class="info-item">
+              <div class="key">Auth</div>
+              <div class="val">Tidak diperlukan</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>file</td>
+                <td><span class="req">required</span></td>
+                <td><span class="desc">File yang akan diupload (form-data)</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Contoh request -->
+          <p style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;">Contoh Request</p>
+
+          <div class="code-wrap">
+            <div class="code-header">
+              <span class="code-lang">cURL</span>
+              <button class="btn-copy-code" onclick="copyCode(this)">Salin</button>
+            </div>
+            <pre>curl -X POST https://uploader.nyzz.my.id/api/upload \
+  -F <span class="t-str">"file=@/path/ke/foto.jpg"</span></pre>
+          </div>
+
+          <!-- Response tabs -->
+          <p style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;">Response</p>
+          <div class="response-tabs">
+            <div class="rtab active" onclick="switchRtab(this,'r-ok')">200 Sukses</div>
+            <div class="rtab err" onclick="switchRtab(this,'r-err')">4xx Error</div>
+          </div>
+          <div class="rtab-content active" id="r-ok">
+            <div class="code-wrap" style="border-radius:0 8px 8px 8px;">
+              <div class="code-header"><span class="code-lang">json</span><button class="btn-copy-code" onclick="copyCode(this)">Salin</button></div>
+              <pre>{
+  <span class="t-prop">"success"</span>: <span class="t-kw">true</span>,
+  <span class="t-prop">"url"</span>:     <span class="t-str">"https://uploader.nyzz.my.id/a1b2c3"</span>,
+  <span class="t-prop">"slug"</span>:    <span class="t-str">"a1b2c3"</span>,
+  <span class="t-prop">"name"</span>:    <span class="t-str">"foto.jpg"</span>,
+  <span class="t-prop">"size"</span>:    <span class="t-num">204800</span>
+}</pre>
+            </div>
+          </div>
+          <div class="rtab-content" id="r-err">
+            <div class="code-wrap" style="border-radius:0 8px 8px 8px;">
+              <div class="code-header"><span class="code-lang">json</span></div>
+              <pre>{
+  <span class="t-prop">"error"</span>: <span class="t-str">"File melebihi batas 3 MB"</span>
+}
+
+<span class="t-cm">// HTTP 400 — tidak ada file</span>
+<span class="t-cm">// HTTP 413 — ukuran melebihi 3 MB</span>
+<span class="t-cm">// HTTP 500 — server error</span></pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Akses file -->
+    <section id="akses">
+      <div class="sec-title">
+        <span class="sec-num">03</span>
+        <h2>Akses File</h2>
+        <div class="line"></div>
+      </div>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/:slug</span>
+          <span class="endpoint-desc">Ambil file via slug</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="callout tip">
+            <span class="callout-icon">✅</span>
+            <span>URL dikembalikan dari endpoint upload langsung bisa dipakai. Format: <code style="font-family:var(--mono);color:var(--green)">https://uploader.nyzz.my.id/xxxxxx</code> (6 karakter acak).</span>
+          </div>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">url</span></div>
+            <pre>https://uploader.nyzz.my.id/<span class="t-str">a1b2c3</span>
+
+<span class="t-cm">// → serve file langsung dengan Content-Type yang tepat</span>
+<span class="t-cm">// → cache 1 tahun (immutable)</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bot WhatsApp -->
+    <section id="bot-wa">
+      <div class="sec-title">
+        <span class="sec-num">04</span>
+        <h2>Integrasi Bot WhatsApp</h2>
+        <div class="line"></div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">📦</span>
+        <span>Contoh menggunakan <strong>Baileys</strong> (library WA paling populer). Install: <code style="font-family:var(--mono)">npm install @whiskeysockets/baileys</code></span>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Terima media dari pengguna</div>
+          <div class="step-desc">Saat bot menerima pesan berisi gambar/video/dokumen, download buffer-nya lalu upload ke NyzzUploader.</div>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">javascript — Baileys</span><button class="btn-copy-code" onclick="copyCode(this)">Salin</button></div>
+            <pre><span class="t-kw">import</span> { <span class="t-var">downloadMediaMessage</span> } <span class="t-kw">from</span> <span class="t-str">'@whiskeysockets/baileys'</span>
+<span class="t-kw">import</span> <span class="t-var">FormData</span> <span class="t-kw">from</span> <span class="t-str">'form-data'</span>
+<span class="t-kw">import</span> <span class="t-var">fetch</span> <span class="t-kw">from</span> <span class="t-str">'node-fetch'</span>
+
+<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://uploader.nyzz.my.id/api/upload'</span>
+
+<span class="t-cm">// Fungsi upload buffer ke NyzzUploader</span>
+<span class="t-kw">async function</span> <span class="t-fn">uploadToNyzz</span>(buffer, filename) {
+  <span class="t-kw">const</span> form = <span class="t-kw">new</span> <span class="t-fn">FormData</span>()
+  form.<span class="t-fn">append</span>(<span class="t-str">'file'</span>, buffer, { filename })
+
+  <span class="t-kw">const</span> res = <span class="t-kw">await</span> <span class="t-fn">fetch</span>(UPLOAD_URL, {
+    method: <span class="t-str">'POST'</span>,
+    body: form,
+    headers: form.<span class="t-fn">getHeaders</span>()
+  })
+
+  <span class="t-kw">const</span> json = <span class="t-kw">await</span> res.<span class="t-fn">json</span>()
+  <span class="t-kw">if</span> (!json.success) <span class="t-kw">throw new</span> <span class="t-fn">Error</span>(json.error)
+  <span class="t-kw">return</span> json.url
+}
+
+<span class="t-cm">// Handler pesan di Baileys</span>
+sock.<span class="t-fn">ev.on</span>(<span class="t-str">'messages.upsert'</span>, <span class="t-kw">async</span> ({ messages }) => {
+  <span class="t-kw">const</span> msg = messages[<span class="t-num">0</span>]
+  <span class="t-kw">if</span> (!msg.message) <span class="t-kw">return</span>
+
+  <span class="t-kw">const</span> type = <span class="t-fn">Object.keys</span>(msg.message)[<span class="t-num">0</span>]
+  <span class="t-kw">const</span> isMedia = [<span class="t-str">'imageMessage'</span>, <span class="t-str">'videoMessage'</span>,
+                   <span class="t-str">'documentMessage'</span>, <span class="t-str">'audioMessage'</span>].<span class="t-fn">includes</span>(type)
+
+  <span class="t-kw">if</span> (!isMedia) <span class="t-kw">return</span>
+
+  <span class="t-kw">const</span> jid = msg.key.remoteJid
+  <span class="t-kw">await</span> sock.<span class="t-fn">sendMessage</span>(jid, { text: <span class="t-str">'⏳ Mengupload...'</span> })
+
+  <span class="t-kw">try</span> {
+    <span class="t-kw">const</span> buffer = <span class="t-kw">await</span> <span class="t-fn">downloadMediaMessage</span>(msg, <span class="t-str">'buffer'</span>, {})
+    <span class="t-kw">const</span> ext = type === <span class="t-str">'imageMessage'</span>   ? <span class="t-str">'.jpg'</span>
+              : type === <span class="t-str">'videoMessage'</span>   ? <span class="t-str">'.mp4'</span>
+              : type === <span class="t-str">'audioMessage'</span>   ? <span class="t-str">'.mp3'</span> : <span class="t-str">'.bin'</span>
+
+    <span class="t-kw">const</span> url = <span class="t-kw">await</span> <span class="t-fn">uploadToNyzz</span>(buffer, <span class="t-str">`upload</span>${ext}<span class="t-str">`</span>)
+
+    <span class="t-kw">await</span> sock.<span class="t-fn">sendMessage</span>(jid, {
+      text: <span class="t-str">`✅ Upload berhasil!\n\n🔗 </span>${url}<span class="t-str">`</span>
+    })
+  } <span class="t-kw">catch</span> (err) {
+    <span class="t-kw">await</span> sock.<span class="t-fn">sendMessage</span>(jid, { text: <span class="t-str">`❌ Gagal: </span>${err.message}<span class="t-str">`</span> })
+  }
+})</pre>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bot Telegram -->
+    <section id="bot-tele">
+      <div class="sec-title">
+        <span class="sec-num">05</span>
+        <h2>Integrasi Bot Telegram</h2>
+        <div class="line"></div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">📦</span>
+        <span>Contoh menggunakan <strong>node-telegram-bot-api</strong>. Install: <code style="font-family:var(--mono)">npm install node-telegram-bot-api node-fetch</code></span>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Setup bot & handler media</div>
+          <div class="step-desc">Bot akan mendengarkan kiriman foto, video, audio, dan dokumen, lalu otomatis upload dan balas dengan URL pendek.</div>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">javascript — node-telegram-bot-api</span><button class="btn-copy-code" onclick="copyCode(this)">Salin</button></div>
+            <pre><span class="t-kw">import</span> <span class="t-var">TelegramBot</span> <span class="t-kw">from</span> <span class="t-str">'node-telegram-bot-api'</span>
+<span class="t-kw">import</span> <span class="t-var">fetch</span> <span class="t-kw">from</span> <span class="t-str">'node-fetch'</span>
+<span class="t-kw">import</span> <span class="t-var">FormData</span> <span class="t-kw">from</span> <span class="t-str">'form-data'</span>
+
+<span class="t-kw">const</span> bot = <span class="t-kw">new</span> <span class="t-fn">TelegramBot</span>(<span class="t-str">'TOKEN_BOT_KAMU'</span>, { polling: <span class="t-kw">true</span> })
+<span class="t-kw">const</span> <span class="t-var">UPLOAD_URL</span> = <span class="t-str">'https://uploader.nyzz.my.id/api/upload'</span>
+
+<span class="t-cm">// Download file dari Telegram lalu upload ke NyzzUploader</span>
+<span class="t-kw">async function</span> <span class="t-fn">uploadFromTelegram</span>(fileId, filename) {
+  <span class="t-kw">const</span> fileUrl = <span class="t-kw">await</span> bot.<span class="t-fn">getFileLink</span>(fileId)
+  <span class="t-kw">const</span> dlRes   = <span class="t-kw">await</span> <span class="t-fn">fetch</span>(fileUrl)
+  <span class="t-kw">const</span> buffer  = <span class="t-fn">Buffer.from</span>(<span class="t-kw">await</span> dlRes.<span class="t-fn">arrayBuffer</span>())
+
+  <span class="t-kw">const</span> form = <span class="t-kw">new</span> <span class="t-fn">FormData</span>()
+  form.<span class="t-fn">append</span>(<span class="t-str">'file'</span>, buffer, { filename })
+
+  <span class="t-kw">const</span> res  = <span class="t-kw">await</span> <span class="t-fn">fetch</span>(UPLOAD_URL, {
+    method: <span class="t-str">'POST'</span>,
+    body: form,
+    headers: form.<span class="t-fn">getHeaders</span>()
+  })
+  <span class="t-kw">const</span> json = <span class="t-kw">await</span> res.<span class="t-fn">json</span>()
+  <span class="t-kw">if</span> (!json.success) <span class="t-kw">throw new</span> <span class="t-fn">Error</span>(json.error)
+  <span class="t-kw">return</span> json.url
+}
+
+<span class="t-cm">// Handler foto</span>
+bot.<span class="t-fn">on</span>(<span class="t-str">'photo'</span>, <span class="t-kw">async</span> (msg) => {
+  <span class="t-kw">const</span> chatId = msg.chat.id
+  <span class="t-kw">const</span> photo  = msg.photo.<span class="t-fn">at</span>(-<span class="t-num">1</span>) <span class="t-cm">// resolusi tertinggi</span>
+  <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">'⏳ Mengupload...'</span>)
+  <span class="t-kw">try</span> {
+    <span class="t-kw">const</span> url = <span class="t-kw">await</span> <span class="t-fn">uploadFromTelegram</span>(photo.file_id, <span class="t-str">'photo.jpg'</span>)
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`✅ Berhasil!\n🔗 </span>${url}<span class="t-str">`</span>)
+  } <span class="t-kw">catch</span> (e) {
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`❌ Gagal: </span>${e.message}<span class="t-str">`</span>)
+  }
+})
+
+<span class="t-cm">// Handler video</span>
+bot.<span class="t-fn">on</span>(<span class="t-str">'video'</span>, <span class="t-kw">async</span> (msg) => {
+  <span class="t-kw">const</span> chatId = msg.chat.id
+  <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">'⏳ Mengupload...'</span>)
+  <span class="t-kw">try</span> {
+    <span class="t-kw">const</span> url = <span class="t-kw">await</span> <span class="t-fn">uploadFromTelegram</span>(msg.video.file_id, <span class="t-str">'video.mp4'</span>)
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`✅ Berhasil!\n🔗 </span>${url}<span class="t-str">`</span>)
+  } <span class="t-kw">catch</span> (e) {
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`❌ Gagal: </span>${e.message}<span class="t-str">`</span>)
+  }
+})
+
+<span class="t-cm">// Handler audio & voice note</span>
+bot.<span class="t-fn">on</span>(<span class="t-str">'audio'</span>, <span class="t-kw">async</span> (msg) => {
+  <span class="t-kw">const</span> chatId = msg.chat.id
+  <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">'⏳ Mengupload...'</span>)
+  <span class="t-kw">try</span> {
+    <span class="t-kw">const</span> url = <span class="t-kw">await</span> <span class="t-fn">uploadFromTelegram</span>(msg.audio.file_id, <span class="t-str">'audio.mp3'</span>)
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`✅ Berhasil!\n🔗 </span>${url}<span class="t-str">`</span>)
+  } <span class="t-kw">catch</span> (e) {
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`❌ Gagal: </span>${e.message}<span class="t-str">`</span>)
+  }
+})
+
+<span class="t-cm">// Handler dokumen (semua format)</span>
+bot.<span class="t-fn">on</span>(<span class="t-str">'document'</span>, <span class="t-kw">async</span> (msg) => {
+  <span class="t-kw">const</span> chatId = msg.chat.id
+  <span class="t-kw">const</span> doc    = msg.document
+  <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">'⏳ Mengupload...'</span>)
+  <span class="t-kw">try</span> {
+    <span class="t-kw">const</span> url = <span class="t-kw">await</span> <span class="t-fn">uploadFromTelegram</span>(doc.file_id, doc.file_name || <span class="t-str">'file.bin'</span>)
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`✅ Berhasil!\n🔗 </span>${url}<span class="t-str">`</span>)
+  } <span class="t-kw">catch</span> (e) {
+    <span class="t-kw">await</span> bot.<span class="t-fn">sendMessage</span>(chatId, <span class="t-str">`❌ Gagal: </span>${e.message}<span class="t-str">`</span>)
+  }
+})</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <span>Telegram membatasi download file gratis maks <strong>20 MB</strong>. NyzzUploader sendiri membatasi <strong>3 MB</strong>, jadi pastikan validasi ukuran sebelum upload.</span>
+      </div>
+    </section>
+
+    <!-- Error codes -->
+    <section id="errors">
+      <div class="sec-title">
+        <span class="sec-num">06</span>
+        <h2>Error Codes</h2>
+        <div class="line"></div>
+      </div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Pesan</th><th>Penyebab</th></tr></thead>
+        <tbody>
+          <tr><td>400</td><td><span class="desc">Tidak ada file yang dikirim</span></td><td><span class="desc">Field <code style="font-family:var(--mono)">file</code> kosong</span></td></tr>
+          <tr><td>405</td><td><span class="desc">Method not allowed</span></td><td><span class="desc">Bukan POST request</span></td></tr>
+          <tr><td>413</td><td><span class="desc">File melebihi batas 3 MB</span></td><td><span class="desc">Ukuran file > 3 MB</span></td></tr>
+          <tr><td>404</td><td><span class="desc">File tidak ditemukan</span></td><td><span class="desc">Slug tidak valid</span></td></tr>
+          <tr><td>500</td><td><span class="desc">Internal server error</span></td><td><span class="desc">Kesalahan server</span></td></tr>
+          <tr><td>502</td><td><span class="desc">GitHub error</span></td><td><span class="desc">Gagal menyimpan ke storage</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Limits -->
+    <section id="limits">
+      <div class="sec-title">
+        <span class="sec-num">07</span>
+        <h2>Batasan</h2>
+        <div class="line"></div>
+      </div>
+      <div class="info-grid">
+        <div class="info-item"><div class="key">Maks ukuran file</div><div class="val">3 MB per file</div></div>
+        <div class="info-item"><div class="key">Format didukung</div><div class="val">Semua tipe file</div></div>
+        <div class="info-item"><div class="key">Expired</div><div class="val">Tidak ada (permanen)</div></div>
+        <div class="info-item"><div class="key">Auth diperlukan</div><div class="val">Tidak</div></div>
+      </div>
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <span>File disimpan di GitHub dan tidak akan dihapus. URL bersifat permanen selama repo tidak dihapus.</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ── Sidebar active link ──
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sections = document.querySelectorAll('section[id], div[id]');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // ── Response tabs ──
+  function switchRtab(el, targetId) {
+    const parent = el.closest('.endpoint-body');
+    parent.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+    parent.querySelectorAll('.rtab-content').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(targetId).classList.add('active');
+  }
+
+  // ── Copy code ──
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Tersalin!';
+      btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = 'Salin'; btn.classList.remove('ok'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
