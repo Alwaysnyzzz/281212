@@ -13,6 +13,7 @@ import { IncomingForm } from 'formidable';
 import FormDataPackage from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import https from 'https';
 
 export const config = {
   api: { bodyParser: false }
@@ -84,6 +85,51 @@ async function parseForm(req) {
   });
 }
 
+function postFormToCatbox(form) {
+  return new Promise((resolve, reject) => {
+    const headers = {
+      ...form.getHeaders(),
+      'User-Agent': 'NyzzUploader/1.0',
+      Accept: '*/*'
+    };
+
+    form.getLength((lengthError, length) => {
+      if (!lengthError && length) {
+        headers['Content-Length'] = length;
+      }
+
+      const req = https.request(
+        CATBOX_UPLOAD_URL,
+        {
+          method: 'POST',
+          headers
+        },
+        response => {
+          let body = '';
+
+          response.on('data', chunk => {
+            body += chunk.toString();
+          });
+
+          response.on('end', () => {
+            resolve({
+              statusCode: response.statusCode || 500,
+              body: body.trim()
+            });
+          });
+        }
+      );
+
+      req.on('error', reject);
+      req.setTimeout(60000, () => {
+        req.destroy(new Error('Catbox upload timeout'));
+      });
+
+      form.pipe(req);
+    });
+  });
+}
+
 async function uploadToCatbox(buffer, filename, mimetype) {
   const safeFileName = sanitizeName(filename || `upload-${Date.now()}`);
 
@@ -95,18 +141,10 @@ async function uploadToCatbox(buffer, filename, mimetype) {
     knownLength: buffer.length
   });
 
-  const res = await fetch(CATBOX_UPLOAD_URL, {
-    method: 'POST',
-    body: form,
-    headers: {
-      ...form.getHeaders(),
-      'User-Agent': 'NyzzUploader/1.0'
-    }
-  });
+  const result = await postFormToCatbox(form);
+  const text = result.body;
 
-  const text = (await res.text()).trim();
-
-  if (!res.ok || !/^https?:\/\//i.test(text)) {
+  if (result.statusCode < 200 || result.statusCode >= 300 || !/^https?:\/\//i.test(text)) {
     throw new Error(text || 'Catbox upload gagal');
   }
 
