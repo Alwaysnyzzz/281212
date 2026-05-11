@@ -10,6 +10,7 @@
 //   BASE_URL       = https://roxy-upload.nyzz.my.id (opsional, bisa auto dari host)
 
 import { IncomingForm } from 'formidable';
+import FormDataPackage from 'form-data';
 import fs from 'fs';
 import path from 'path';
 
@@ -85,18 +86,20 @@ async function parseForm(req) {
 
 async function uploadToCatbox(buffer, filename, mimetype) {
   const safeFileName = sanitizeName(filename || `upload-${Date.now()}`);
-  const blob = new Blob([buffer], {
-    type: mimetype || 'application/octet-stream'
-  });
 
-  const form = new FormData();
+  const form = new FormDataPackage();
   form.append('reqtype', 'fileupload');
-  form.append('fileToUpload', blob, safeFileName);
+  form.append('fileToUpload', buffer, {
+    filename: safeFileName,
+    contentType: mimetype || 'application/octet-stream',
+    knownLength: buffer.length
+  });
 
   const res = await fetch(CATBOX_UPLOAD_URL, {
     method: 'POST',
     body: form,
     headers: {
+      ...form.getHeaders(),
       'User-Agent': 'NyzzUploader/1.0'
     }
   });
